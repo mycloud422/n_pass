@@ -6,10 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>n_pass</title>
+
   <link rel="icon" type="image/png" href="favicon180.png">
+  <link rel="apple-touch-icon" href="favicon180.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="apple-touch-icon" href="favicon180.png">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
     rel="stylesheet">
@@ -48,7 +49,6 @@
       border-radius: 0;
     }
 
-    /* ===== Blurred parallax background ===== */
     .bg-parallax {
       position: fixed;
       inset: 0;
@@ -73,9 +73,6 @@
     .orb {
       border-radius: 0;
       filter: blur(60px);
-      /* was 90px — cost scales with radius, 60 looks near-identical and is much cheaper */
-      /* static color instead of animated colorShift keyframes — blur already blends overlapping orbs visually,
-     animating background-color under a blur forced a full re-blur every frame */
     }
 
     .orb-1 {
@@ -160,7 +157,6 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
-    /* ===== Main layout ===== */
     main {
       position: relative;
       z-index: 3;
@@ -176,9 +172,6 @@
       max-width: 460px;
       background: var(--card-bg);
       backdrop-filter: blur(20px);
-      /* was blur(32px) saturate(180%) — saturate is the expensive live part
-                                   layered on top of a backdrop that itself sits behind animated blurred orbs.
-                                   Dropped saturate, cut blur radius */
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--border);
       border-radius: 0;
@@ -227,7 +220,6 @@
       border-radius: 0;
     }
 
-    /* ===== Password display ===== */
     .password-display {
       position: relative;
       background: rgba(0, 0, 0, 0.35);
@@ -350,7 +342,6 @@
       border-color: rgba(255, 255, 255, 0.3);
     }
 
-    /* ===== Strength bar ===== */
     .strength-container {
       margin-bottom: 28px;
     }
@@ -396,7 +387,6 @@
       transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
     }
 
-    /* ===== Length control ===== */
     .control-group {
       margin-bottom: 22px;
     }
@@ -438,6 +428,7 @@
       border-radius: 0;
       outline: none;
       cursor: pointer;
+      touch-action: manipulation;
     }
 
     input[type="range"]::-webkit-slider-thumb {
@@ -472,7 +463,6 @@
       box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
     }
 
-    /* ===== More options button ===== */
     .more-options-btn {
       width: 100%;
       background: rgba(255, 255, 255, 0.02);
@@ -594,7 +584,6 @@
       opacity: 0.7;
     }
 
-    /* ===== Toast ===== */
     .toast {
       position: fixed;
       bottom: 32px;
@@ -755,6 +744,9 @@
 
   <div class="toast" id="toast">Copied to clipboard</div>
 
+  <!-- Sound effects: modern.mp3 used for everything (clicks + slider) -->
+  <audio id="sndClick" src="modern.mp3" preload="auto"></audio>
+
   <script>
     const state = {
       length: 16,
@@ -786,6 +778,31 @@
     const strengthValue = document.getElementById('strengthValue');
     const toast = document.getElementById('toast');
 
+    // ===== Sound effects =====
+    // cloneNode lets the same sound overlap/retrigger rapidly (fast clicking or fast
+    // slider dragging) without waiting for the previous play to finish or cutting it off.
+    const sndClickBase = document.getElementById('sndClick');
+
+    function playSound(base, volume = 0.6) {
+      const node = base.cloneNode(true);
+      node.volume = volume;
+      node.play().catch(() => { }); // ignore autoplay-block errors before first user interaction
+    }
+
+    function playClick() {
+      playSound(sndClickBase, 0.6);
+    }
+
+    // Throttled so dragging the slider doesn't fire dozens of overlapping plays per second.
+    let lastScrollSoundTime = 0;
+    function playScrollSound() {
+      const now = performance.now();
+      if (now - lastScrollSoundTime > 60) {
+        lastScrollSoundTime = now;
+        playSound(sndClickBase, 0.4);
+      }
+    }
+
     function generatePassword() {
       let chars = '';
       for (const [key, set] of Object.entries(charsets)) {
@@ -813,7 +830,6 @@
       return arr.join('');
     }
 
-    // 60fps requestAnimationFrame generation
     let animationFrameId = null;
     function animateGenerate() {
       const finalPassword = generatePassword();
@@ -822,7 +838,7 @@
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
       const finalLen = finalPassword.length;
-      const duration = 300; // 300ms total roll
+      const duration = 300;
       let startTime = null;
 
       function step(timestamp) {
@@ -891,6 +907,7 @@
       state.length = parseInt(e.target.value);
       lengthValue.textContent = state.length;
       updateSliderFill();
+      playScrollSound();
     });
 
     lengthSlider.addEventListener('change', () => {
@@ -898,6 +915,7 @@
     });
 
     moreOptionsBtn.addEventListener('click', () => {
+      playClick();
       const isOpen = moreOptionsBtn.classList.toggle('open');
       moreOptionsPanel.classList.toggle('open');
       moreOptionsBtn.setAttribute('aria-expanded', isOpen);
@@ -913,6 +931,7 @@
           return;
         }
 
+        playClick();
         state.options[option] = !state.options[option];
         btn.classList.toggle('active');
         btn.setAttribute('aria-pressed', state.options[option]);
@@ -920,7 +939,10 @@
       });
     });
 
-    genBtn.addEventListener('click', animateGenerate);
+    genBtn.addEventListener('click', () => {
+      playClick();
+      animateGenerate();
+    });
 
     function fallbackCopyTextToClipboard(text) {
       const textArea = document.createElement('textarea');
@@ -947,6 +969,7 @@
     }
 
     copyBtn.addEventListener('click', () => {
+      playClick();
       const text = passwordEl.textContent;
       if (!text) return;
 
@@ -971,11 +994,6 @@
       toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
-    // ===== Parallax background — now idles instead of running forever =====
-    // Only schedules the next rAF while the mouse target and current position
-    // meaningfully differ. Once it settles, the loop stops entirely and only
-    // restarts on the next mousemove. This kills the perpetual 60fps tick
-    // that was running even when nothing was moving.
     let mouseX = 0, mouseY = 0;
     let currentX = 0, currentY = 0;
     let parallaxRunning = false;
@@ -1001,7 +1019,7 @@
       if (dx > 0.001 || dy > 0.001) {
         requestAnimationFrame(parallaxLoop);
       } else {
-        parallaxRunning = false; // settled — stop ticking until mouse moves again
+        parallaxRunning = false;
       }
     }
 
@@ -1018,7 +1036,6 @@
       kickParallax();
     });
 
-    // Init
     updateSliderFill();
     setTimeout(animateGenerate, 400);
   </script>
