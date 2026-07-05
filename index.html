@@ -1,1440 +1,920 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Password Generator — Retrowave Edition</title>
-  <meta name="description"
-    content="Generate strong, secure passwords instantly. Everything is generated locally in your browser." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-  <style>
-    /* ------------------------------------------------------------------ */
-    /*  Reset & base                                                       */
-    /* ------------------------------------------------------------------ */
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      --bg: #0d0221;
-      --bg-deep: #05010f;
-      --card: #1a0b2e;
-      --panel-from: #2d0a4e;
-      --panel-to: #1a0b2e;
-      --neon-pink: #ff2a6d;
-      --neon-pink-soft: rgba(255, 42, 109, 0.15);
-      --neon-purple: #b026ff;
-      --neon-cyan: #05d9e8;
-      --neon-cyan-soft: rgba(5, 217, 232, 0.15);
-      --neon-magenta: #f72585;
-      --neon-yellow: #f9f871;
-      --red: #ff2a6d;
-      --red-hover: #f72585;
-      --white: #ffffff;
-      --zinc-400: #a1a1aa;
-      --zinc-500: #71717a;
-      --border-neon: rgba(176, 38, 255, 0.4);
-      --border-pink: rgba(255, 42, 109, 0.4);
-      --border-cyan: rgba(5, 217, 232, 0.4);
-      --border-white-10: rgba(255, 255, 255, 0.1);
-      --radius: 0;
-      --pixel: "Press Start 2P", monospace;
-      --mono: "VT323", "Press Start 2P", monospace;
-      --sans: "VT323", "Press Start 2P", monospace;
-    }
-
-    html,
-    body {
-      height: 100%;
-    }
-
-    body {
-      font-family: var(--sans);
-      background: var(--bg);
-      color: #f4f4f5;
-      -webkit-font-smoothing: none;
-      line-height: 1.5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    /* ------------------------------------------------------------------ */
-    /*  Retrowave grid background                                          */
-    /* ------------------------------------------------------------------ */
-    .retro-bg {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      overflow: hidden;
-      pointer-events: none;
-      background: linear-gradient(180deg, #0d0221 0%, #1a0b2e 40%, #2d0a4e 60%, #ff2a6d 60.1%, #b026ff 100%);
-    }
-
-    .sun {
-      position: absolute;
-      left: -8rem;
-      top: -8rem;
-      width: 24rem;
-      height: 24rem;
-      border-radius: 50%;
-      background: linear-gradient(180deg, #f9f871 0%, #ff2a6d 50%, #b026ff 100%);
-      filter: blur(1px);
-      box-shadow: 0 0 80px 20px rgba(255, 42, 109, 0.6), 0 0 200px 60px rgba(176, 38, 255, 0.4);
-      opacity: 0.85;
-      z-index: 0;
-    }
-
-    .sun::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent 0px,
-        transparent 18px,
-        var(--bg) 18px,
-        var(--bg) 24px
-      );
-      border-radius: 50%;
-      mask: linear-gradient(180deg, transparent 50%, black 50%);
-      -webkit-mask: linear-gradient(180deg, transparent 50%, black 50%);
-    }
-
-    .grid-floor {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      width: 200%;
-      height: 40%;
-      transform: translateX(-50%) perspective(400px) rotateX(60deg);
-      transform-origin: bottom center;
-      background-image:
-        linear-gradient(to right, rgba(5, 217, 232, 0.6) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(5, 217, 232, 0.6) 1px, transparent 1px);
-      background-size: 4rem 4rem;
-      mask: linear-gradient(180deg, transparent 0%, black 50%);
-      -webkit-mask: linear-gradient(180deg, transparent 0%, black 50%);
-      animation: gridMove 4s linear infinite, gridGlow 3s ease-in-out infinite;
-      z-index: 1;
-    }
-
-    @keyframes gridMove {
-      from { background-position: 0 0; }
-      to { background-position: 0 4rem; }
-    }
-
-    @keyframes gridGlow {
-      0%, 100% { opacity: 0.8; filter: hue-rotate(0deg); }
-      50% { opacity: 1; filter: hue-rotate(40deg); }
-    }
-
-    .stars {
-      position: absolute;
-      inset: 0 0 50% 0;
-      background-image:
-        radial-gradient(1px 1px at 20px 30px, #fff, transparent),
-        radial-gradient(1px 1px at 60px 70px, #fff, transparent),
-        radial-gradient(1px 1px at 120px 50px, #fff, transparent),
-        radial-gradient(2px 2px at 180px 90px, #fff, transparent),
-        radial-gradient(1px 1px at 250px 30px, #fff, transparent),
-        radial-gradient(1px 1px at 320px 80px, #fff, transparent),
-        radial-gradient(1px 1px at 400px 50px, #fff, transparent),
-        radial-gradient(2px 2px at 480px 100px, #fff, transparent),
-        radial-gradient(1px 1px at 550px 20px, #fff, transparent),
-        radial-gradient(1px 1px at 620px 70px, #fff, transparent);
-      background-size: 700px 200px;
-      opacity: 0.6;
-      z-index: 0;
-    }
-
-    /* Scanlines overlay */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.12) 0px,
-        rgba(0, 0, 0, 0.12) 1px,
-        transparent 1px,
-        transparent 3px
-      );
-      mix-blend-mode: multiply;
-    }
-
-    /* CRT flicker */
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: 1001;
-      pointer-events: none;
-      background: rgba(18, 16, 16, 0.04);
-      animation: flicker 0.15s infinite;
-    }
-
-    @keyframes flicker {
-      0% { opacity: 0.27861; }
-      5% { opacity: 0.34769; }
-      10% { opacity: 0.23604; }
-      15% { opacity: 0.90626; }
-      20% { opacity: 0.18128; }
-      25% { opacity: 0.83891; }
-      30% { opacity: 0.65583; }
-      35% { opacity: 0.67807; }
-      40% { opacity: 0.26559; }
-      45% { opacity: 0.84693; }
-      50% { opacity: 0.96019; }
-      55% { opacity: 0.08594; }
-      60% { opacity: 0.20313; }
-      65% { opacity: 0.71988; }
-      70% { opacity: 0.53455; }
-      75% { opacity: 0.37288; }
-      80% { opacity: 0.71428; }
-      85% { opacity: 0.70419; }
-      90% { opacity: 0.7003; }
-      95% { opacity: 0.36108; }
-      100% { opacity: 0.24387; }
-    }
-
-    /* ------------------------------------------------------------------ */
-    /*  Layout                                                            */
-    /* ------------------------------------------------------------------ */
-    main {
-      width: 100%;
-      max-width: 38rem;
-      margin: 0 auto;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 2rem 1rem 4rem;
-      position: relative;
-      z-index: 2;
-    }
-
-    /* Header */
-    header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .lock-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 4rem;
-      height: 4rem;
-      margin-bottom: 1.25rem;
-      border: 3px solid var(--neon-cyan);
-      background: rgba(5, 217, 232, 0.1);
-      box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 20px rgba(5, 217, 232, 0.3);
-      animation: pulseGlow 6s ease-in-out infinite; /* Slowed down 3x */
-    }
-
-    @keyframes pulseGlow {
-      0%, 100% { box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 20px rgba(5, 217, 232, 0.3); }
-      50% { box-shadow: 0 0 35px var(--neon-cyan), 0 0 60px var(--neon-cyan), inset 0 0 30px rgba(5, 217, 232, 0.5); }
-    }
-
-    .lock-badge svg {
-      width: 2rem;
-      height: 2rem;
-      color: var(--neon-cyan);
-      filter: drop-shadow(0 0 4px var(--neon-cyan));
-    }
-
-    h1 {
-      font-family: var(--pixel);
-      font-size: clamp(1rem, 4vw, 1.5rem);
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      color: var(--neon-pink);
-      text-shadow:
-        0 0 5px var(--neon-pink),
-        0 0 10px var(--neon-pink),
-        0 0 20px var(--neon-magenta),
-        0 0 40px var(--neon-magenta);
-      line-height: 1.4;
-      animation: textFlicker 12s infinite; /* Slowed down 3x */
-    }
-
-    @keyframes textFlicker {
-      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-        text-shadow:
-          0 0 5px var(--neon-pink),
-          0 0 10px var(--neon-pink),
-          0 0 20px var(--neon-magenta),
-          0 0 40px var(--neon-magenta);
-        opacity: 1;
-      }
-      20%, 24%, 55% {
-        text-shadow: none;
-        opacity: 0.85;
-      }
-    }
-
-    .subtitle {
-      font-family: var(--pixel);
-      font-size: 0.625rem;
-      color: var(--neon-cyan);
-      margin-top: 0.75rem;
-      letter-spacing: 0.1em;
-      text-shadow: 0 0 8px var(--neon-cyan);
-    }
-
-    /* ------------------------------------------------------------------ */
-    /*  Password display card                                             */
-    /* ------------------------------------------------------------------ */
-    .pwd-card {
-      background: rgba(26, 11, 46, 0.85);
-      border: 3px solid var(--neon-purple);
-      padding: 1.5rem;
-      box-shadow:
-        0 0 20px rgba(176, 38, 255, 0.5),
-        inset 0 0 20px rgba(176, 38, 255, 0.1),
-        0 25px 50px -12px rgba(0, 0, 0, 0.8);
-      position: relative;
-    }
-
-    .pwd-card::before {
-      content: "";
-      position: absolute;
-      inset: -3px;
-      border: 1px solid var(--neon-cyan);
-      pointer-events: none;
-      opacity: 0.5;
-    }
-
-    .pwd-row {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    @media (min-width: 640px) {
-      .pwd-row {
-        flex-direction: row;
-        align-items: stretch;
-      }
-    }
-
-    .pwd-display {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex: 1;
-      min-width: 0;
-      background: var(--bg-deep);
-      border: 2px solid var(--neon-cyan);
-      padding: 0.75rem 1rem;
-      box-shadow: inset 0 0 15px rgba(5, 217, 232, 0.2), 0 0 10px rgba(5, 217, 232, 0.3);
-    }
-
-    .refresh-btn {
-      flex-shrink: 0;
-      width: 1.5rem;
-      height: 1.5rem;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--neon-cyan);
-      transition: color 0.15s, filter 0.15s;
-      padding: 0;
-      display: flex;
-      filter: drop-shadow(0 0 3px var(--neon-cyan));
-    }
-
-    .refresh-btn:hover {
-      color: var(--neon-pink);
-      filter: drop-shadow(0 0 6px var(--neon-pink));
-    }
-
-    .refresh-btn.spinning svg {
-      animation: spin 0.5s ease-in-out;
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .pwd-text {
-      flex: 1;
-      min-width: 0;
-      font-family: var(--mono);
-      font-size: 1.5rem;
-      font-weight: 400;
-      color: var(--neon-cyan);
-      word-break: break-all;
-      line-height: 1.2;
-      text-shadow: 0 0 8px var(--neon-cyan), 0 0 15px rgba(5, 217, 232, 0.5);
-      letter-spacing: 0.05em;
-    }
-
-    @media (min-width: 640px) {
-      .pwd-text {
-        font-size: 1.75rem;
-      }
-    }
-
-    .pwd-text.placeholder {
-      color: var(--neon-purple);
-      font-weight: 400;
-      text-shadow: 0 0 5px var(--neon-purple);
-      font-size: 1rem;
-    }
-
-    /* Big copy button */
-    .copy-btn {
-      flex-shrink: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 1rem 1.5rem;
-      min-width: 11rem;
-      border: 3px solid var(--neon-pink);
-      background: rgba(255, 42, 109, 0.15);
-      color: var(--neon-pink);
-      font-size: 0.75rem;
-      font-weight: 700;
-      font-family: var(--pixel);
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-shadow: 0 0 5px var(--neon-pink);
-      box-shadow:
-        0 0 15px rgba(255, 42, 109, 0.5),
-        inset 0 0 15px rgba(255, 42, 109, 0.2);
-      text-transform: uppercase;
-    }
-
-    .copy-btn:hover:not(:disabled) {
-      background: var(--neon-pink);
-      color: var(--bg-deep);
-      text-shadow: none;
-      box-shadow:
-        0 0 25px var(--neon-pink),
-        0 0 50px var(--neon-pink),
-        inset 0 0 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .copy-btn:active:not(:disabled) {
-      transform: scale(0.97);
-    }
-
-    .copy-btn:disabled {
-      cursor: not-allowed;
-      opacity: 0.4;
-      box-shadow: none;
-    }
-
-    .copy-btn svg {
-      width: 1.25rem;
-      height: 1.25rem;
-    }
-
-    /* Strength */
-    .strength {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-top: 1.25rem;
-      font-family: var(--pixel);
-    }
-
-    .strength-bar-bg {
-      flex: 1;
-      height: 0.75rem;
-      background: var(--bg-deep);
-      border: 1px solid var(--border-white-10);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .strength-bar-fill {
-      height: 100%;
-      transition: width 0.5s ease, background 0.3s ease;
-      width: 0%;
-      background-image: repeating-linear-gradient(
-        90deg,
-        transparent 0px,
-        transparent 4px,
-        rgba(0, 0, 0, 0.3) 4px,
-        rgba(0, 0, 0, 0.3) 6px
-      );
-    }
-
-    .strength-label {
-      display: flex;
-      align-items: center;
-      gap: 0.375rem;
-      font-size: 0.5rem;
-      font-weight: 700;
-      transition: color 0.3s ease, text-shadow 0.3s ease;
-      letter-spacing: 0.05em;
-      white-space: nowrap;
-    }
-
-    .strength-label svg {
-      width: 1rem;
-      height: 1rem;
-    }
-
-    /* ------------------------------------------------------------------ */
-    /*  Control panel                                                     */
-    /* ------------------------------------------------------------------ */
-    .panel {
-      margin-top: 1.5rem;
-      background: linear-gradient(to bottom, rgba(45, 10, 78, 0.9), rgba(26, 11, 46, 0.9));
-      border: 3px solid var(--neon-purple);
-      padding: 1.5rem;
-      box-shadow:
-        0 0 20px rgba(176, 38, 255, 0.4),
-        inset 0 0 20px rgba(176, 38, 255, 0.05),
-        0 25px 50px -12px rgba(0, 0, 0, 0.8);
-      position: relative;
-    }
-
-    .panel::before {
-      content: "";
-      position: absolute;
-      inset: -3px;
-      border: 1px solid var(--neon-cyan);
-      pointer-events: none;
-      opacity: 0.4;
-    }
-
-    /* Length */
-    .length-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-    }
-
-    .length-label {
-      font-family: var(--pixel);
-      font-size: 0.625rem;
-      font-weight: 700;
-      color: var(--neon-cyan);
-      text-shadow: 0 0 8px var(--neon-cyan);
-      letter-spacing: 0.05em;
-    }
-
-    /* Editable Length Counter */
-    .length-input {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 3rem;
-      height: 2rem;
-      padding: 0 0.5rem;
-      border: 2px solid var(--neon-pink);
-      background: rgba(255, 42, 109, 0.2);
-      color: var(--neon-pink);
-      font-family: var(--pixel);
-      font-size: 0.875rem;
-      font-weight: 700;
-      text-shadow: 0 0 5px var(--neon-pink);
-      box-shadow: 0 0 10px rgba(255, 42, 109, 0.5), inset 0 0 10px rgba(255, 42, 109, 0.2);
-      text-align: center;
-      outline: none;
-      -moz-appearance: textfield;
-      width: 4rem;
-    }
-
-    .length-input::-webkit-outer-spin-button,
-    .length-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-
-    /* Range slider — styled to match */
-    .slider-container {
-      padding-top: 0.5rem;
-    }
-
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 1rem;
-      background: var(--bg-deep);
-      border: 2px solid var(--neon-purple);
-      outline: none;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(176, 38, 255, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.5);
-      margin-bottom: -2px;
-      z-index: 2;
-      position: relative;
-    }
-
-    /* Slider Track with Ruler Divits directly on it */
-    input[type="range"]::-webkit-slider-runnable-track {
-      height: 1rem;
-      background-image:
-        repeating-linear-gradient(to right, rgba(5, 217, 232, 0.6) 0, rgba(5, 217, 232, 0.6) 1px, transparent 1px, transparent calc(100% / 28)),
-        linear-gradient(to right, var(--neon-pink) 0%, var(--neon-pink) var(--fill, 50%), var(--bg-deep) var(--fill, 50%), var(--bg-deep) 100%);
-    }
-
-    input[type="range"]::-moz-range-track {
-      height: 1rem;
-      background-color: var(--bg-deep);
-      background-image: repeating-linear-gradient(to right, rgba(5, 217, 232, 0.6) 0, rgba(5, 217, 232, 0.6) 1px, transparent 1px, transparent calc(100% / 28));
-    }
-
-    input[type="range"]::-moz-range-progress {
-      height: 1rem;
-      background-color: var(--neon-pink);
-      background-image: repeating-linear-gradient(to right, rgba(5, 217, 232, 0.6) 0, rgba(5, 217, 232, 0.6) 1px, transparent 1px, transparent calc(100% / 28));
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 1.5rem;
-      height: 1.75rem;
-      margin-top: -0.5rem;
-      background: var(--neon-cyan);
-      border: 2px solid var(--bg-deep);
-      box-shadow: 0 0 15px var(--neon-cyan), 0 0 25px var(--neon-cyan);
-      cursor: pointer;
-      transition: box-shadow 0.15s;
-      position: relative;
-      z-index: 10;
-    }
-
-    input[type="range"]::-webkit-slider-thumb:hover {
-      box-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan), 0 0 60px var(--neon-cyan);
-    }
-
-    input[type="range"]::-moz-range-thumb {
-      width: 1.5rem;
-      height: 1.75rem;
-      background: var(--neon-cyan);
-      border: 2px solid var(--bg-deep);
-      box-shadow: 0 0 15px var(--neon-cyan);
-      cursor: pointer;
-    }
-
-    .range-bounds {
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--pixel);
-      font-size: 0.625rem;
-      color: var(--neon-purple);
-      text-shadow: 0 0 5px var(--neon-purple);
-      margin-top: 0.5rem;
-    }
-
-    .range-bounds span {
-      flex: 1;
-      text-align: center;
-    }
-    .range-bounds span:first-child { text-align: left; }
-    .range-bounds span:last-child { text-align: right; }
-
-    /* Characters used */
-    .chars-title {
-      margin-top: 1.75rem;
-      margin-bottom: 1rem;
-      font-family: var(--pixel);
-      font-size: 0.625rem;
-      font-weight: 700;
-      color: var(--neon-cyan);
-      text-shadow: 0 0 8px var(--neon-cyan);
-      letter-spacing: 0.05em;
-    }
-
-    .chars-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-    }
-
-    @media (min-width: 640px) {
-      .chars-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    .char-option {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.875rem 1rem;
-      border: 2px solid var(--border-white-10);
-      background: rgba(13, 2, 33, 0.6);
-      cursor: pointer;
-      transition: all 0.15s;
-      user-select: none;
-      position: relative;
-    }
-
-    .char-option:hover {
-      border-color: var(--neon-purple);
-      box-shadow: 0 0 10px rgba(176, 38, 255, 0.4);
-    }
-
-    /* Upgrades are Cyan! */
-    .char-option.checked {
-      border-color: var(--neon-cyan);
-      background: rgba(5, 217, 232, 0.12);
-      box-shadow: 0 0 15px rgba(5, 217, 232, 0.4), inset 0 0 10px rgba(5, 217, 232, 0.1);
-    }
-
-    .char-option input[type="checkbox"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 1.5rem;
-      height: 1.5rem;
-      border: 2px solid var(--neon-purple);
-      background: var(--bg-deep);
-      cursor: pointer;
-      flex-shrink: 0;
-      position: relative;
-      transition: all 0.15s;
-      box-shadow: 0 0 5px rgba(176, 38, 255, 0.3);
-    }
-
-    .char-option input[type="checkbox"]:checked {
-      background: var(--neon-cyan);
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
-    }
-
-    .char-option input[type="checkbox"]:checked::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 5px;
-      height: 9px;
-      border: solid var(--bg-deep);
-      border-width: 0 2px 2px 0;
-      transform: translate(-50%, -60%) rotate(45deg);
-    }
-
-    .char-text {
-      display: flex;
-      flex-direction: column;
-      gap: 0.125rem;
-    }
-
-    /* Increased Font Size */
-    .char-name {
-      font-family: var(--pixel);
-      font-size: 0.875rem; 
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: 0.05em;
-    }
-
-    .char-option.checked .char-name {
-      color: var(--neon-cyan);
-      text-shadow: 0 0 5px var(--neon-cyan);
-    }
-
-    .char-hint {
-      font-family: var(--mono);
-      font-size: 1rem;
-      color: var(--neon-cyan);
-      opacity: 0.7;
-    }
-
-    /* ------------------------------------------------------------------ */
-    /*  Toast                                                             */
-    /* ------------------------------------------------------------------ */
-    .toast {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      padding: 1rem 1.25rem;
-      background: rgba(13, 2, 33, 0.95);
-      color: var(--white);
-      box-shadow: 0 0 20px var(--neon-pink), 0 0 40px rgba(255, 42, 109, 0.3);
-      border: 2px solid var(--neon-pink);
-      font-family: var(--pixel);
-      font-size: 0.625rem;
-      max-width: 420px;
-      transform: translateX(calc(100% + 1rem));
-      opacity: 0;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-    }
-
-    .toast.show {
-      transform: translateX(0);
-      opacity: 1;
-    }
-
-    .toast-title {
-      font-weight: 700;
-      color: var(--neon-pink);
-      text-shadow: 0 0 5px var(--neon-pink);
-      letter-spacing: 0.05em;
-    }
-
-    .toast-desc {
-      font-family: var(--mono);
-      font-size: 1rem;
-      opacity: 0.9;
-      margin-top: 0.25rem;
-      color: var(--neon-cyan);
-    }
-
-    @media (max-width: 640px) {
-      .toast {
-        top: auto;
-        bottom: 1rem;
-        right: 1rem;
-        left: 1rem;
-        max-width: none;
-      }
-    }
-
-    /* Focus visible accessibility */
-    button:focus-visible,
-    input:focus-visible,
-    label:focus-visible {
-      outline: 2px solid var(--neon-cyan);
-      outline-offset: 2px;
-    }
-
-    /* Sound toggle */
-    .sound-toggle {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 50;
-      width: 2.5rem;
-      height: 2.5rem;
-      background: rgba(13, 2, 33, 0.9);
-      border: 2px solid var(--neon-cyan);
-      color: var(--neon-cyan);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 10px var(--neon-cyan);
-      transition: all 0.15s;
-    }
-
-    .sound-toggle:hover {
-      background: var(--neon-cyan);
-      color: var(--bg-deep);
-      box-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan);
-    }
-
-    .sound-toggle svg {
-      width: 1.25rem;
-      height: 1.25rem;
-    }
-
-    .sound-toggle.muted {
-      border-color: var(--zinc-500);
-      color: var(--zinc-500);
-      box-shadow: none;
-    }
-
-    .sound-toggle.muted:hover {
-      background: rgba(113, 113, 122, 0.2);
-      color: var(--zinc-400);
-      box-shadow: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>n_pass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white: #ffffff;
+  --light: #d4d4d4;
+  --mid: #888888;
+  --dark: #1a1a1a;
+  --black: #050505;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.18);
+  --card-bg: rgba(15,15,15,0.55);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button { font-family: inherit; border-radius: 0; }
+
+/* ===== Blurred parallax background ===== */
+.bg-parallax {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-parallax::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.6) 100%);
+  z-index: 3;
+}
+
+.orb-wrapper {
+  position: absolute;
+  will-change: transform;
+}
+
+.orb {
+  border-radius: 0;
+  filter: blur(60px); /* was 90px — cost scales with radius, 60 looks near-identical and is much cheaper */
+  /* static color instead of animated colorShift keyframes — blur already blends overlapping orbs visually,
+     animating background-color under a blur forced a full re-blur every frame */
+}
+
+.orb-1 { width: 540px; height: 540px; background: #3d4a5e; animation: float1 22s ease-in-out infinite; }
+.orb-2 { width: 480px; height: 480px; background: #505a66; animation: float2 28s ease-in-out infinite; }
+.orb-3 { width: 400px; height: 400px; background: #404a55; animation: float3 19s ease-in-out infinite; }
+
+.orb-wrapper-1 { top: -8%; left: 3%; }
+.orb-wrapper-2 { bottom: -12%; right: 5%; }
+.orb-wrapper-3 { top: 45%; left: 48%; }
+
+@keyframes float1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(60px, 80px) scale(1.05); }
+}
+@keyframes float2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-70px, -50px) scale(0.95); }
+}
+@keyframes float3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, -60px) scale(1.08); }
+}
+
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===== Main layout ===== */
+main {
+  position: relative;
+  z-index: 3;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px); /* was blur(32px) saturate(180%) — saturate is the expensive live part
+                                   layered on top of a backdrop that itself sits behind animated blurred orbs.
+                                   Dropped saturate, cut blur radius */
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: 32px;
+  box-shadow: 
+    0 30px 80px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(255,255,255,0.02),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  animation: cardEntry 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  position: relative;
+}
+
+@keyframes cardEntry {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 42px;
+  letter-spacing: -2px;
+  text-transform: lowercase;
+  margin-bottom: 28px;
+  text-align: left;
+  color: var(--white);
+  position: relative;
+  display: inline-block;
+}
+
+.title::after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--white);
+  border-radius: 0;
+}
+
+/* ===== Password display ===== */
+.password-display {
+  position: relative;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: 20px 56px 20px 56px;
+  margin-bottom: 14px;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.password-display:hover {
+  border-color: var(--border-hover);
+}
+
+.password-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--white);
+  line-height: 1.35;
+  flex: 1;
+  user-select: all;
+  cursor: text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.gen-btn {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: var(--mid);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gen-btn:hover {
+  color: var(--white);
+  transform: translateY(-50%) rotate(180deg) scale(1.1);
+}
+
+.gen-btn:active {
+  transform: translateY(-50%) rotate(360deg) scale(0.9);
+  transition-duration: 0.6s;
+}
+
+.gen-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 0;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+
+.copy-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: var(--border-hover);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.copy-btn:active {
+  transform: translateY(-50%) scale(0.92);
+}
+
+.copy-btn svg {
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+
+.copy-btn .icon-check {
+  transform: scale(0) rotate(-45deg);
+  opacity: 0;
+}
+
+.copy-btn.copied .icon-copy {
+  transform: scale(0) rotate(45deg);
+  opacity: 0;
+}
+
+.copy-btn.copied .icon-check {
+  transform: scale(1) rotate(0);
+  opacity: 1;
+}
+
+.copy-btn.copied {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.3);
+}
+
+/* ===== Strength bar ===== */
+.strength-container {
+  margin-bottom: 28px;
+}
+
+.strength-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.strength-label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--mid);
+}
+
+.strength-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--white);
+  transition: opacity 0.3s ease;
+}
+
+.strength-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  background: var(--white);
+  border-radius: 0;
+  width: 0%;
+  opacity: 0;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+
+/* ===== Length control ===== */
+.control-group {
+  margin-bottom: 22px;
+}
+
+.control-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+
+.label-text {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  color: var(--mid);
+}
+
+.length-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--white);
+}
+
+.slider-wrap {
+  position: relative;
+  padding: 12px 0;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  --val: 33%;
+  background: linear-gradient(to right, var(--white) 0%, var(--white) var(--val), rgba(255,255,255,0.08) var(--val), rgba(255,255,255,0.08) 100%);
+  border-radius: 0;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 24px;
+  background: var(--white);
+  border-radius: 0;
+  cursor: ew-resize;
+  border: none;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.5);
+  transition: box-shadow 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  box-shadow: 0 0 0 6px rgba(255,255,255,0.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 24px;
+  background: var(--white);
+  border-radius: 0;
+  cursor: ew-resize;
+  border: none;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.5);
+}
+
+/* ===== More options button ===== */
+.more-options-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--white);
+  padding: 14px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.more-options-btn:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border-hover);
+}
+
+.more-options-btn:active {
+  transform: scale(0.99);
+}
+
+.more-options-btn .chevron {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.more-options-btn.open .chevron {
+  transform: rotate(180deg);
+}
+
+.more-options-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin-top 0.4s ease;
+  margin-top: 0;
+}
+
+.more-options-panel.open {
+  grid-template-rows: 1fr;
+  margin-top: 12px;
+}
+
+.more-options-panel-inner {
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.35s ease 0.1s;
+}
+
+.more-options-panel.open .more-options-panel-inner {
+  opacity: 1;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.opt-btn {
+  position: relative;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 18px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.opt-btn:hover {
+  border-color: var(--border-hover);
+}
+
+.opt-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--white);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+
+.opt-btn.active::before {
+  transform: scaleY(1);
+}
+
+.opt-btn span {
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.opt-btn.active span {
+  color: var(--black);
+}
+
+.opt-btn .sub-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0px;
+  opacity: 0.7;
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(150%);
+  background: rgba(20,20,20,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--white);
+  padding: 12px 22px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 100;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+button:focus-visible, input:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.4);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .card { padding: 24px 20px; }
+  .title { font-size: 36px; }
+  .password-display { padding: 16px 50px 16px 50px; min-height: 64px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
 </head>
-
 <body>
-  <div class="retro-bg" aria-hidden="true">
-    <div class="stars"></div>
-    <div class="sun"></div>
-    <div class="grid-floor"></div>
-  </div>
 
-  <button class="sound-toggle" id="soundToggle" aria-label="Toggle sound" title="Toggle sound">
-    <svg id="soundIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-      stroke-linejoin="round">
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-    </svg>
-  </button>
+<div class="bg-parallax">
+  <div class="orb-wrapper orb-wrapper-1"><div class="orb orb-1"></div></div>
+  <div class="orb-wrapper orb-wrapper-2"><div class="orb orb-2"></div></div>
+  <div class="orb-wrapper orb-wrapper-3"><div class="orb orb-3"></div></div>
+</div>
+<div class="noise"></div>
 
-  <main>
-    <header>
-      <div class="lock-badge" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+<main>
+  <div class="card">
+    <h1 class="title">n_pass</h1>
+    
+    <div class="password-display">
+      <button class="gen-btn" id="genBtn" aria-label="Generate password">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+          <polyline points="23 4 23 10 17 10"/>
+          <polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
+          <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
         </svg>
+      </button>
+      <div class="password-text" id="password" aria-live="polite"></div>
+      <button class="copy-btn" id="copyBtn" aria-label="Copy password">
+        <svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+          <rect x="9" y="9" width="13" height="13"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="strength-container">
+      <div class="strength-header">
+        <span class="strength-label">Strength</span>
+        <span class="strength-value" id="strengthValue">—</span>
       </div>
-      <h1>PASSWORD GENERATOR</h1>
-      <div class="subtitle">// POWERED BY WEB CRYPTO API //</div>
-    </header>
-
-    <!-- Password display -->
-    <section class="pwd-card" aria-label="Generated password">
-      <div class="pwd-row">
-        <div class="pwd-display">
-          <button class="refresh-btn" id="refreshBtn" aria-label="Generate new password" title="Generate new password">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-              <path d="M21 3v5h-5" />
-              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-              <path d="M3 21v-5h5" />
-            </svg>
+      <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+    </div>
+    
+    <div class="control-group">
+      <div class="control-label">
+        <span class="label-text">Length</span>
+        <span class="length-value" id="lengthValue">16</span>
+      </div>
+      <div class="slider-wrap">
+        <input type="range" id="lengthSlider" min="4" max="40" value="16" aria-label="Password length">
+      </div>
+    </div>
+    
+    <button class="more-options-btn" id="moreOptionsBtn" aria-expanded="false">
+      <span>More Options</span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+    
+    <div class="more-options-panel" id="moreOptionsPanel">
+      <div class="more-options-panel-inner">
+        <div class="options-grid">
+          <button class="opt-btn active" data-option="uppercase" aria-pressed="true">
+            <span>Uppercase</span>
+            <span class="sub-text">A-Z</span>
           </button>
-          <code class="pwd-text placeholder" id="pwdText" aria-live="polite">SELECT AT LEAST ONE OPTION...</code>
-        </div>
-
-        <button class="copy-btn" id="copyBtn" disabled>
-          <svg id="copyIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-          </svg>
-          <span id="copyLabel">COPY</span>
-        </button>
-      </div>
-
-      <div class="strength">
-        <div class="strength-bar-bg">
-          <div class="strength-bar-fill" id="strengthBar"></div>
-        </div>
-        <div class="strength-label" id="strengthLabel">
-          <svg id="strengthIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path
-              d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-          </svg>
-          <span id="strengthText">NONE</span>
+          <button class="opt-btn active" data-option="lowercase" aria-pressed="true">
+            <span>Lowercase</span>
+            <span class="sub-text">a-z</span>
+          </button>
+          <button class="opt-btn active" data-option="numbers" aria-pressed="true">
+            <span>Numbers</span>
+            <span class="sub-text">0-9</span>
+          </button>
+          <button class="opt-btn active" data-option="symbols" aria-pressed="true">
+            <span>Symbols</span>
+            <span class="sub-text">!@#$%</span>
+          </button>
         </div>
       </div>
-    </section>
-
-    <!-- Control panel -->
-    <section class="panel" aria-label="Password options">
-      <div>
-        <div class="length-header">
-          <label class="length-label" for="lengthSlider">PASSWORD LENGTH</label>
-          <input type="number" class="length-input" id="lengthInput" value="16" min="4" max="32">
-        </div>
-        <div class="slider-container">
-          <input type="range" id="lengthSlider" min="4" max="32" value="16" step="1" />
-          <div class="range-bounds">
-            <span>04</span>
-            <span>08</span>
-            <span>16</span>
-            <span>24</span>
-            <span>32</span>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h2 class="chars-title">PASSWORD UPGRADES</h2>
-        <div class="chars-grid" id="charsGrid"><!-- generated by JS --></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Toast -->
-  <div class="toast" id="toast" role="status" aria-live="polite">
-    <div>
-      <div class="toast-title" id="toastTitle">PASSWORD COPIED</div>
-      <div class="toast-desc" id="toastDesc"></div>
     </div>
   </div>
+</main>
 
-  <script>
-    (function () {
-      "use strict";
+<div class="toast" id="toast">Copied to clipboard</div>
 
-      /* =================================================================
-         SOUND ENGINE — 8-bit chiptune style with Web Audio API
-         ================================================================= */
-      var SoundEngine = {
-        ctx: null,
-        enabled: true,
+<script>
+const state = {
+  length: 16,
+  options: {
+    uppercase: true,
+    lowercase: true,
+    numbers: true,
+    symbols: true
+  }
+};
 
-        init: function () {
-          if (!this.ctx) {
-            try {
-              var AC = window.AudioContext || window.webkitAudioContext;
-              this.ctx = new AC();
-            } catch (e) {
-              this.ctx = null;
-            }
-          }
-          if (this.ctx && this.ctx.state === "suspended") {
-            this.ctx.resume();
-          }
-        },
+const charsets = {
+  uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  lowercase: 'abcdefghijklmnopqrstuvwxyz',
+  numbers: '0123456789',
+  symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+};
 
-        beep: function (freq, duration, type, volume) {
-          if (!this.enabled || !this.ctx) return;
-          type = type || "square";
-          volume = (typeof volume !== "undefined") ? volume : 0.08;
+const allChars = Object.values(charsets).join('');
 
-          var now = this.ctx.currentTime;
-          var osc = this.ctx.createOscillator();
-          var gain = this.ctx.createGain();
+const passwordEl = document.getElementById('password');
+const lengthSlider = document.getElementById('lengthSlider');
+const lengthValue = document.getElementById('lengthValue');
+const moreOptionsBtn = document.getElementById('moreOptionsBtn');
+const moreOptionsPanel = document.getElementById('moreOptionsPanel');
+const genBtn = document.getElementById('genBtn');
+const copyBtn = document.getElementById('copyBtn');
+const strengthFill = document.getElementById('strengthFill');
+const strengthValue = document.getElementById('strengthValue');
+const toast = document.getElementById('toast');
 
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, now);
+function generatePassword() {
+  let chars = '';
+  for (const [key, set] of Object.entries(charsets)) {
+    if (state.options[key]) chars += set;
+  }
+  if (!chars) return null;
+  
+  const required = [];
+  Object.entries(charsets).forEach(([k, set]) => {
+    if (state.options[k]) {
+      required.push(set[Math.floor(Math.random() * set.length)]);
+    }
+  });
+  
+  let password = required.join('');
+  for (let i = required.length; i < state.length; i++) {
+    password += chars[Math.floor(Math.random() * chars.length)];
+  }
+  
+  const arr = password.split('');
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.join('');
+}
 
-          gain.gain.setValueAtTime(0, now);
-          gain.gain.linearRampToValueAtTime(volume, now + 0.005);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+// 60fps requestAnimationFrame generation
+let animationFrameId = null;
+function animateGenerate() {
+  const finalPassword = generatePassword();
+  if (!finalPassword) return;
 
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
-          osc.start(now);
-          osc.stop(now + duration);
-        },
+  const finalLen = finalPassword.length;
+  const duration = 300; // 300ms total roll
+  let startTime = null;
 
-        sequence: function (notes, type) {
-          if (!this.enabled || !this.ctx) return;
-          type = type || "square";
-          var t = this.ctx.currentTime;
-          for (var i = 0; i < notes.length; i++) {
-            var n = notes[i];
-            (function (freq, start, dur, vol, ctx, tp) {
-              var osc = ctx.createOscillator();
-              var gain = ctx.createGain();
-              osc.type = tp;
-              osc.frequency.setValueAtTime(freq, start);
-              gain.gain.setValueAtTime(0, start);
-              gain.gain.linearRampToValueAtTime(vol, start + 0.005);
-              gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-              osc.connect(gain);
-              gain.connect(ctx.destination);
-              osc.start(start);
-              osc.stop(start + dur);
-            })(n.f, t + n.d, n.l, n.v || 0.08, this.ctx, type);
-          }
-        },
-
-        click: function () {
-          this.beep(880, 0.08, "square", 0.07);
-        },
-
-        tick: function () {
-          this.beep(1200, 0.04, "square", 0.04);
-        },
-
-        toggleOn: function () {
-          this.sequence([
-            { f: 660, d: 0, l: 0.06, v: 0.07 },
-            { f: 990, d: 0.06, l: 0.08, v: 0.07 }
-          ]);
-        },
-
-        toggleOff: function () {
-          this.sequence([
-            { f: 990, d: 0, l: 0.06, v: 0.07 },
-            { f: 660, d: 0.06, l: 0.08, v: 0.07 }
-          ]);
-        },
-
-        refresh: function () {
-          this.sequence([
-            { f: 440, d: 0, l: 0.05, v: 0.06 },
-            { f: 554, d: 0.04, l: 0.05, v: 0.06 },
-            { f: 659, d: 0.08, l: 0.05, v: 0.06 },
-            { f: 880, d: 0.12, l: 0.12, v: 0.07 }
-          ]);
-        },
-
-        copySuccess: function () {
-          this.sequence([
-            { f: 523, d: 0, l: 0.08, v: 0.07 },
-            { f: 659, d: 0.08, l: 0.08, v: 0.07 },
-            { f: 784, d: 0.16, l: 0.08, v: 0.07 },
-            { f: 1047, d: 0.24, l: 0.18, v: 0.08 }
-          ]);
-        },
-
-        error: function () {
-          this.sequence([
-            { f: 220, d: 0, l: 0.12, v: 0.08 },
-            { f: 180, d: 0.12, l: 0.18, v: 0.08 }
-          ], "sawtooth");
-        },
-
-        slide: function () {
-          this.beep(660, 0.03, "square", 0.03);
-        }
-      };
-
-      /* ---------- Character sets ---------- */
-      var CHAR_SETS = {
-        uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        lowercase: "abcdefghijklmnopqrstuvwxyz",
-        numbers: "0123456789",
-        symbols: "!@#$%^&*()-_=+[]{};:,.<>?/~"
-      };
-      var OPTIONS = [
-        { key: "uppercase", label: "UPPERCASE", hint: "A-Z" },
-        { key: "lowercase", label: "LOWERCASE", hint: "a-z" },
-        { key: "numbers", label: "NUMBERS", hint: "0-9" },
-        { key: "symbols", label: "SYMBOLS", hint: "!@#$" }
-      ];
-      var MIN_LENGTH = 4;
-      var MAX_LENGTH = 32;
-
-      /* ---------- Secure RNG ---------- */
-      function secureRandomInt(max) {
-        if (max <= 0) return 0;
-        var maxUint32 = 0xffffffff;
-        var limit = maxUint32 - (maxUint32 % max);
-        var buf = new Uint32Array(1);
-        var x = 0;
-        do {
-          crypto.getRandomValues(buf);
-          x = buf[0];
-        } while (x >= limit);
-        return x % max;
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    const easedProgress = 1 - Math.pow(1 - progress, 3);
+    const revealCount = Math.floor(easedProgress * finalLen);
+    
+    let display = '';
+    for (let i = 0; i < finalLen; i++) {
+      if (i < revealCount) {
+        display += finalPassword[i];
+      } else {
+        display += allChars[Math.floor(Math.random() * allChars.length)];
       }
+    }
+    passwordEl.textContent = display;
 
-      function generatePassword(length, enabled) {
-        if (enabled.length === 0) return "";
-        var pool = enabled.map(function (k) { return CHAR_SETS[k]; }).join("");
-        var required = enabled.map(function (k) {
-          var set = CHAR_SETS[k];
-          return set.charAt(secureRandomInt(set.length));
-        });
-        var chars = required.slice();
-        for (var i = chars.length; i < length; i++) {
-          chars.push(pool.charAt(secureRandomInt(pool.length)));
-        }
-        for (var j = chars.length - 1; j > 0; j--) {
-          var r = secureRandomInt(j + 1);
-          var tmp = chars[j];
-          chars[j] = chars[r];
-          chars[r] = tmp;
-        }
-        return chars.slice(0, length).join("");
-      }
+    if (progress < 1) {
+      animationFrameId = requestAnimationFrame(step);
+    } else {
+      passwordEl.textContent = finalPassword;
+      updateStrength(finalPassword);
+      animationFrameId = null;
+    }
+  }
+  animationFrameId = requestAnimationFrame(step);
+}
 
-      /* ---------- Strength ---------- */
-      function calcStrength(length, enabled) {
-        if (enabled.length === 0 || length === 0) {
-          return { label: "NONE", percent: 0, color: "#71717a", bar: "#3f3f46", icon: "alert" };
-        }
-        var poolSize = enabled.reduce(function (acc, k) { return acc + CHAR_SETS[k].length; }, 0);
-        var entropy = length * Math.log2(poolSize);
-        if (entropy < 28) return { label: "VERY WEAK", percent: 15, color: "#ff2a6d", bar: "#ff2a6d", icon: "alert" };
-        if (entropy < 40) return { label: "WEAK", percent: 32, color: "#ff8c42", bar: "#ff8c42", icon: "alert" };
-        if (entropy < 60) return { label: "FAIR", percent: 55, color: "#f9f871", bar: "#f9f871", icon: "question" };
-        if (entropy < 80) return { label: "GOOD", percent: 75, color: "#05d9e8", bar: "#05d9e8", icon: "check" };
-        if (entropy < 112) return { label: "STRONG", percent: 90, color: "#b026ff", bar: "#b026ff", icon: "check" };
-        return { label: "MAXIMUM", percent: 100, color: "#ff2a6d", bar: "#ff2a6d", icon: "check" };
-      }
+function updateStrength(password) {
+  if (!password) {
+    strengthFill.style.width = '0%';
+    strengthFill.style.opacity = '0';
+    strengthValue.textContent = '—';
+    return;
+  }
+  
+  let charsetSize = 0;
+  Object.entries(charsets).forEach(([k, v]) => {
+    if (state.options[k]) charsetSize += v.length;
+  });
+  
+  const entropy = state.length * Math.log2(charsetSize || 1);
+  let pct = Math.min(100, (entropy / 80) * 100);
+  let label = 'WEAK';
+  
+  if (entropy < 40) label = 'WEAK';
+  else if (entropy < 60) label = 'FAIR';
+  else if (entropy < 80) label = 'GOOD';
+  else label = 'STRONG';
+  
+  strengthFill.style.width = pct + '%';
+  const brightness = 0.35 + (pct / 100) * 0.65;
+  strengthFill.style.opacity = brightness;
+  strengthValue.textContent = label;
+}
 
-      var ICONS = {
-        alert: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>',
-        question: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/>',
-        check: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>'
-      };
+function updateSliderFill() {
+  const val = ((state.length - 4) / (40 - 4)) * 100;
+  lengthSlider.style.setProperty('--val', val + '%');
+}
 
-      /* ---------- State ---------- */
-      var state = {
-        length: 16,
-        enabled: { uppercase: true, lowercase: true, numbers: true, symbols: true }
-      };
+lengthSlider.addEventListener('input', (e) => {
+  state.length = parseInt(e.target.value);
+  lengthValue.textContent = state.length;
+  updateSliderFill();
+});
 
-      /* ---------- DOM refs ---------- */
-      var pwdText = document.getElementById("pwdText");
-      var refreshBtn = document.getElementById("refreshBtn");
-      var copyBtn = document.getElementById("copyBtn");
-      var copyIcon = document.getElementById("copyIcon");
-      var copyLabel = document.getElementById("copyLabel");
-      var lengthSlider = document.getElementById("lengthSlider");
-      var lengthInput = document.getElementById("lengthInput");
-      var charsGrid = document.getElementById("charsGrid");
-      var strengthBar = document.getElementById("strengthBar");
-      var strengthText = document.getElementById("strengthText");
-      var strengthLabel = document.getElementById("strengthLabel");
-      var strengthIcon = document.getElementById("strengthIcon");
-      var toast = document.getElementById("toast");
-      var toastTitle = document.getElementById("toastTitle");
-      var toastDesc = document.getElementById("toastDesc");
-      var toastTimer = null;
-      var soundToggle = document.getElementById("soundToggle");
-      var soundIcon = document.getElementById("soundIcon");
+lengthSlider.addEventListener('change', () => {
+  animateGenerate();
+});
 
-      /* ---------- Initialize sound on first interaction ---------- */
-      function initSoundOnce() {
-        SoundEngine.init();
-        document.removeEventListener("click", initSoundOnce);
-        document.removeEventListener("keydown", initSoundOnce);
-      }
-      document.addEventListener("click", initSoundOnce);
-      document.addEventListener("keydown", initSoundOnce);
+moreOptionsBtn.addEventListener('click', () => {
+  const isOpen = moreOptionsBtn.classList.toggle('open');
+  moreOptionsPanel.classList.toggle('open');
+  moreOptionsBtn.setAttribute('aria-expanded', isOpen);
+});
 
-      /* ---------- Sound toggle ---------- */
-      var soundOnIcon = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" />';
-      var soundOffIcon = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="22" x2="16" y1="9" y2="15" /><line x1="16" x2="22" y1="9" y2="15" />';
+document.querySelectorAll('.opt-btn').forEach(btn => {
+  const option = btn.dataset.option;
+  
+  btn.addEventListener('click', () => {
+    const activeButtons = document.querySelectorAll('.opt-btn.active');
+    
+    if (state.options[option] && activeButtons.length === 1) {
+      return; 
+    }
+    
+    state.options[option] = !state.options[option];
+    btn.classList.toggle('active');
+    btn.setAttribute('aria-pressed', state.options[option]);
+    animateGenerate();
+  });
+});
 
-      soundToggle.addEventListener("click", function () {
-        SoundEngine.init();
-        SoundEngine.enabled = !SoundEngine.enabled;
-        if (SoundEngine.enabled) {
-          soundToggle.classList.remove("muted");
-          soundIcon.innerHTML = soundOnIcon;
-          SoundEngine.click();
-        } else {
-          soundToggle.classList.add("muted");
-          soundIcon.innerHTML = soundOffIcon;
-        }
-      });
+genBtn.addEventListener('click', animateGenerate);
 
-      /* ---------- Build checkboxes ---------- */
-      OPTIONS.forEach(function (opt) {
-        var label = document.createElement("label");
-        label.className = "char-option checked";
-        label.htmlFor = "opt-" + opt.key;
-        label.setAttribute("tabindex", "0");
+function fallbackCopyTextToClipboard(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.top = '-9999px';
+  textArea.style.left = '-9999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      copyBtn.classList.add('copied');
+      showToast('Copied to clipboard');
+      setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+    } else {
+      showToast('Copy failed');
+    }
+  } catch (err) {
+    showToast('Copy failed');
+  }
+  document.body.removeChild(textArea);
+}
 
-        var input = document.createElement("input");
-        input.type = "checkbox";
-        input.id = "opt-" + opt.key;
-        input.checked = true;
+copyBtn.addEventListener('click', () => {
+  const text = passwordEl.textContent;
+  if (!text) return;
+  
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.classList.add('copied');
+      showToast('Copied to clipboard');
+      setTimeout(() => copyBtn.classList.remove('copied'), 1500);
+    }).catch(() => {
+      fallbackCopyTextToClipboard(text);
+    });
+  } else {
+    fallbackCopyTextToClipboard(text);
+  }
+});
 
-        var textWrap = document.createElement("span");
-        textWrap.className = "char-text";
-        var name = document.createElement("span");
-        name.className = "char-name";
-        name.textContent = opt.label;
-        var hint = document.createElement("span");
-        hint.className = "char-hint";
-        hint.textContent = opt.hint;
-        textWrap.appendChild(name);
-        textWrap.appendChild(hint);
+let toastTimer = null;
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
 
-        label.appendChild(input);
-        label.appendChild(textWrap);
-        charsGrid.appendChild(label);
+// ===== Parallax background — now idles instead of running forever =====
+// Only schedules the next rAF while the mouse target and current position
+// meaningfully differ. Once it settles, the loop stops entirely and only
+// restarts on the next mousemove. This kills the perpetual 60fps tick
+// that was running even when nothing was moving.
+let mouseX = 0, mouseY = 0;
+let currentX = 0, currentY = 0;
+let parallaxRunning = false;
 
-        function applyToggle() {
-          state.enabled[opt.key] = input.checked;
-          label.classList.toggle("checked", input.checked);
-          render(true);
-          if (input.checked) {
-            SoundEngine.toggleOn();
-          } else {
-            SoundEngine.toggleOff();
-          }
-        }
+const wrappers = [
+  document.querySelector('.orb-wrapper-1'),
+  document.querySelector('.orb-wrapper-2'),
+  document.querySelector('.orb-wrapper-3')
+];
+const depths = [30, -45, 20];
 
-        function toggle() {
-          var anyOn = OPTIONS.some(function (o) {
-            if (o.key === opt.key) return !input.checked;
-            return document.getElementById("opt-" + o.key).checked;
-          });
-          if (!anyOn) {
-            input.checked = true;
-            SoundEngine.error();
-            return;
-          }
-          input.checked = !input.checked;
-          applyToggle();
-        }
+function parallaxLoop() {
+  currentX += (mouseX - currentX) * 0.08;
+  currentY += (mouseY - currentY) * 0.08;
 
-        label.addEventListener("click", function (e) {
-          if (e.target === input) return;
-          e.preventDefault();
-          SoundEngine.init();
-          toggle();
-        });
+  wrappers.forEach((w, i) => {
+    w.style.transform = `translate(${currentX * depths[i]}px, ${currentY * depths[i]}px)`;
+  });
 
-        input.addEventListener("change", function () {
-          SoundEngine.init();
-          var anyOn = OPTIONS.some(function (o) {
-            return document.getElementById("opt-" + o.key).checked;
-          });
-          if (!anyOn) {
-            input.checked = true;
-            SoundEngine.error();
-            return;
-          }
-          applyToggle();
-        });
+  const dx = Math.abs(mouseX - currentX);
+  const dy = Math.abs(mouseY - currentY);
 
-        label.addEventListener("keydown", function (e) {
-          if (e.key === " " || e.key === "Enter") {
-            e.preventDefault();
-            SoundEngine.init();
-            toggle();
-          }
-        });
-      });
+  if (dx > 0.001 || dy > 0.001) {
+    requestAnimationFrame(parallaxLoop);
+  } else {
+    parallaxRunning = false; // settled — stop ticking until mouse moves again
+  }
+}
 
-      /* ---------- Length Controls ---------- */
-      function updateSliderFill() {
-        var pct = ((state.length - MIN_LENGTH) / (MAX_LENGTH - MIN_LENGTH)) * 100;
-        lengthSlider.style.setProperty("--fill", pct + "%");
-      }
+function kickParallax() {
+  if (!parallaxRunning) {
+    parallaxRunning = true;
+    requestAnimationFrame(parallaxLoop);
+  }
+}
 
-      function updateLengthDisplay() {
-        lengthInput.value = state.length < 10 ? "0" + state.length : state.length;
-      }
+document.addEventListener('mousemove', (e) => {
+  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  kickParallax();
+});
 
-      lengthSlider.addEventListener("input", function () {
-        state.length = parseInt(lengthSlider.value, 10);
-        updateLengthDisplay();
-        updateSliderFill();
-        SoundEngine.slide();
-        render(true);
-      });
-
-      lengthInput.addEventListener("input", function () {
-        var val = parseInt(lengthInput.value, 10);
-        if (isNaN(val)) return;
-        
-        // Clamp during typing
-        if (val < MIN_LENGTH) val = MIN_LENGTH;
-        if (val > MAX_LENGTH) val = MAX_LENGTH;
-        
-        if (state.length !== val) {
-          state.length = val;
-          lengthSlider.value = val;
-          updateSliderFill();
-          SoundEngine.tick();
-          render(true);
-        }
-      });
-
-      lengthInput.addEventListener("blur", function() {
-        updateLengthDisplay();
-      });
-
-      /* ---------- Refresh ---------- */
-      function regenerate() {
-        SoundEngine.init();
-        SoundEngine.refresh();
-        refreshBtn.classList.add("spinning");
-        setTimeout(function () { refreshBtn.classList.remove("spinning"); }, 500);
-        render(true);
-      }
-      refreshBtn.addEventListener("click", regenerate);
-
-      /* ---------- Copy ---------- */
-      var currentPassword = "";
-      var copied = false;
-      var copyResetTimer = null;
-
-      function showToast(title, desc) {
-        toastTitle.textContent = title;
-        toastDesc.textContent = desc;
-        toast.classList.add("show");
-        if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 3000);
-      }
-
-      copyBtn.addEventListener("click", function () {
-        if (!currentPassword) return;
-        SoundEngine.init();
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(currentPassword).then(function () {
-            onCopied();
-          }).catch(function () {
-            fallbackCopy(currentPassword);
-          });
-        } else {
-          fallbackCopy(currentPassword);
-        }
-      });
-
-      function fallbackCopy(text) {
-        var ta = document.createElement("textarea");
-        ta.value = text;
-        ta.style.position = "fixed";
-        ta.style.opacity = "0";
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand("copy"); onCopied(); }
-        catch (e) {
-          SoundEngine.error();
-          showToast("COPY FAILED", "Browser blocked clipboard.");
-        }
-        document.body.removeChild(ta);
-      }
-
-      function onCopied() {
-        copied = true;
-        SoundEngine.copySuccess();
-        copyIcon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
-        copyLabel.textContent = "COPIED!";
-        showToast("PASSWORD COPIED", currentPassword.length + " CHARS IN CLIPBOARD");
-        if (copyResetTimer) clearTimeout(copyResetTimer);
-        copyResetTimer = setTimeout(function () {
-          copied = false;
-          copyIcon.innerHTML = '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>';
-          copyLabel.textContent = "COPY";
-        }, 2000);
-      }
-
-      /* ---------- Render ---------- */
-      function render(regen) {
-        var enabledKeys = OPTIONS.filter(function (o) { return state.enabled[o.key]; }).map(function (o) { return o.key; });
-        var s = calcStrength(state.length, enabledKeys);
-        strengthBar.style.width = s.percent + "%";
-        strengthBar.style.background = s.bar;
-        strengthBar.style.boxShadow = "0 0 10px " + s.bar + ", 0 0 20px " + s.bar;
-        strengthText.textContent = s.label;
-        strengthLabel.style.color = s.color;
-        strengthLabel.style.textShadow = "0 0 5px " + s.color;
-        strengthIcon.innerHTML = ICONS[s.icon];
-
-        if (enabledKeys.length === 0) {
-          currentPassword = "";
-          pwdText.textContent = "SELECT AT LEAST ONE OPTION...";
-          pwdText.classList.add("placeholder");
-          copyBtn.disabled = true;
-          return;
-        }
-        if (regen || !currentPassword) {
-          currentPassword = generatePassword(state.length, enabledKeys);
-          if (copied) {
-            copied = false;
-            copyIcon.innerHTML = '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>';
-            copyLabel.textContent = "COPY";
-          }
-        }
-        pwdText.textContent = currentPassword;
-        pwdText.classList.remove("placeholder");
-        copyBtn.disabled = false;
-      }
-
-      /* ---------- Init ---------- */
-      updateSliderFill();
-      updateLengthDisplay();
-      render(true);
-    })();
-  </script>
+// Init
+updateSliderFill();
+setTimeout(animateGenerate, 400);
+</script>
 </body>
-
 </html>
